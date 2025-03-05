@@ -1,15 +1,21 @@
-# Create a user, get all users, delete them, or update them
-from app import app, db
-from flask import request, jsonify
+# user_routes.py
+from flask import Blueprint, request, jsonify
 from models import Users
+from extensions import db
 
-#CRUD-->
+user_bp = Blueprint("user", __name__)
+
+'''@user_bp.route("/api/users", methods=["GET"])
+def get_users():
+    users = Users.query.all()
+    result = [user.to_json() for user in users]
+    return jsonify(result)'''
 
 # Get all users
 # To create a route, need to create a decorator
 #GET method
 #Using Python code to interact with database
-@app.route("/api/users", methods = ["GET"])
+@user_bp.route("/api/users", methods = ["GET"])
 def get_users():
     users = Users.query.all()
     result = [user.to_json() for user in users]
@@ -17,7 +23,7 @@ def get_users():
     return jsonify(result) # 200 by default
 
 # Create a user
-@app.route("/api/users",methods=["POST"]) # 'POST' corresponds to an official method: As seen in POSTMAN Collections
+@user_bp.route("/api/users",methods=["POST"]) # 'POST' corresponds to an official method: As seen in POSTMAN Collections
 def create_user():
     try:
         data = request.json # Take request and turn into json take a look into fields
@@ -52,7 +58,7 @@ def create_user():
         return jsonify({"error":str(e)}), 500
     
 #Deleting a user
-@app.route("/api/users/<int:id>",methods=["DELETE"]) # 'DELETE' corresponds to an official method
+@user_bp.route("/api/users/<int:id>",methods=["DELETE"]) # 'DELETE' corresponds to an official method
 def delete_user(id):
     try:
         user = Users.query.get(id)
@@ -68,7 +74,7 @@ def delete_user(id):
         return jsonify({"error":str(e)}), 500
     
 #Update a user
-@app.route("/api/users/<int:id>",methods=["PATCH"])
+@user_bp.route("/api/users/<int:id>",methods=["PATCH"])
 def update_user(id):
     try:
         user = Users.query.get(id)
