@@ -5,6 +5,7 @@ from flask_cors import CORS
 from extensions import db # Import db from extension.py
 from user_routes import user_bp
 from expense_routes import expense_categories_bp
+import os
 
 # Flask wants to pass--> Important for relative pass
 app = Flask(__name__)
@@ -19,6 +20,7 @@ app.register_blueprint(expense_categories_bp)
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///budgetUsers.db"
 # Performance: Do not consume resources, we do not care about modifications that sqlalc does
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+print(app.config.keys())
 
 # Initialize db with app
 db.init_app(app)
@@ -33,7 +35,8 @@ with app.app_context():
 
 if __name__ == "__main__":
     #Better debugging in console
-    app.run(debug = True)
+    # ToDo: Hide for production by using environment variables
+    app.run(host="0.0.0.0", port=10000, debug=True)
 
 '''
 Enter in terminal (within venv) before running app
