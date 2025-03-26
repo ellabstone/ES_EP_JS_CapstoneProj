@@ -1,3 +1,4 @@
+#extensions.py
 from flask_sqlalchemy import SQLAlchemy
 
 #Creating db isntance

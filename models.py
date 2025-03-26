@@ -1,61 +1,170 @@
 # models.py
-# A model will just be a table in our database
-# Using this file when we interact with database
 from extensions import db
+from datetime import datetime, timezone
 
 class Users(db.Model):
-    #(type, Going to be unique and incremented by one)
     #The PRIMARY KEY constraint uniquely identifies each
     # record in a table. Primary keys must contain UNIQUE values,
     # and cannot contain NULL values.
     id = db.Column(db.Integer, primary_key = True)
-    # Max length is 100, cannot be null
-    # if nullable = True --> optional
     name = db.Column(db.String(100), nullable = False)
-    income = db.Column(db.Float, nullable = False)
-    expenses = db.Column(db.Float, nullable = False)
-    gender = db.Column(db.String(10), nullable = False)
-    img_url = db.Column(db.String(200), nullable = True)
+    username = db.Column(db.String(100), nullable = False)
+    password = db.Column(db.String(100), nullable = False) # Store hashed passwords
 
-    ###### Create a new table, ExpenseCategories, which will store the
-    # custom expense categories for each user. This table will have a foreign
-    # key that links it to the Users table.
+    # Relationships
+    initial_expenses = db.relationship("InitialExpense", backref="user", lazy=True, cascade="all, delete-orphan")
 
-    # Defining a one-to-many relationship with ExpenseCategories
-    expense_categories = db.relationship("ExpenseCategories",
-                                          backref="user",
-                                          lazy=True,
-                                          cascade="all, delete-orphan")
+    initial_incomes = db.relationship("InitialIncome", backref="user", lazy=True, cascade="all, delete-orphan")
 
-    # When you send data to client, need to send via json
-    # Create it once, whenever we need to convert to json we call this function
+    budgets = db.relationship("Budget", backref="user", lazy=True, cascade="all, delete-orphan")
+    
     # Taking user and convert to json
     def to_json(self):
         return{
             "id":self.id,
             "name":self.name,
-            "income":self.income,
-            "expenses":self.expenses,
-            "gender":self.gender,
-            #Camel case is common in javaScript
-            "imgUrl":self.img_url,
-            # Include categories in JSON
-            "expenseCategories": [category.to_json() for category in self.expense_categories]
+            "username":self.username,
+            #"password":self.password,
+            "initial_expenses_count": len(self.initial_expenses),
+            "initial_incomes_count": len(self.initial_incomes),
+            "initial_expenses": [initial_expense.to_json() for initial_expense in self.initial_expenses],
+            "initial_incomes": [initial_income.to_json() for initial_income in self.initial_incomes],
+            "budgets_count": len(self.budgets)
         }
+
+class InitialExpense(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    category_type = db.Column(db.String(100), nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "amount": self.amount,
+            "category_type": self.category_type,
+            "user_id": self.user_id
+        }
+
+class InitialIncome(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "amount": self.amount,
+            "user_id": self.user_id
+        }
+
+class Budget(db.Model):
+    __tablename__ = 'budgets'
     
-class ExpenseCategories(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    method = db.Column(db.String(100), nullable=False)
+    period = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    expenses = db.relationship("BudgetExpense", backref="budget", lazy=True, cascade="all, delete-orphan")
+    incomes = db.relationship("BudgetIncome", backref="budget", lazy=True, cascade="all, delete-orphan")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "userId": self.user_id,
+            "method": self.method,
+            "period": self.period,
+            "createdAt": self.created_at.isoformat() if self.created_at else None,
+            "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
+            "expenses": [expense.to_json() for expense in self.expenses],
+            "incomes": [income.to_json() for income in self.incomes],
+            "total_income": sum(income.amount for income in self.incomes),
+            "total_expenses": sum(expense.amount for expense in self.expenses),
+            "balance_after_expenses": sum(income.amount for income in self.incomes) - sum(expense.amount for expense in self.expenses)
+        }
+
+class BudgetExpense(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    budget_id = db.Column(db.Integer, db.ForeignKey("budgets.id"), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    category_type = db.Column(db.String(100), nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "budget_id": self.budget_id,
+            "title": self.title,
+            "amount": self.amount,
+            "category_type": self.category_type
+        }
+
+class BudgetIncome(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    budget_id = db.Column(db.Integer, db.ForeignKey("budgets.id"), nullable=False)
+    title = db.Column(db.String(100), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "budget_id": self.budget_id,
+            "title": self.title,
+            "amount": self.amount
+        }
+
+'''class ExpenseCategories(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # Name of the category (ex. "rent" or "subscriptions")
     title = db.Column(db.String(100), nullable=False)
     # Amount allocated to this category
     amount = db.Column(db.Float, nullable=False)
-    # Link to the User
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    category_type = db.Column(db.String(100), nullable=False) # e.g. "Necessities", "Wants", "Savings"
+    # Link to the user's budget
+    budget_id = db.Column(db.Integer, db.ForeignKey("budgets.id"), nullable=False)
+
+    # Define a relationship with Budgets
+    budget = db.relationship("Budgets",
+                             backref="expense_categories",
+                             lazy=True,
+                             cascade="all, delete-orphan")
 
     def to_json(self):
         return{
             "id":self.id,
             "title":self.title,
             "amount":self.amount,
-            "userId":self.user_id
+            "category":self.category_type,
+            "budgetId":self.budget_id
         }
+    
+class IncomeCategories(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    # Name of the category (ex. "rent" or "subscriptions")
+    title = db.Column(db.String(100), nullable=False)
+    # Amount allocated to this category
+    amount = db.Column(db.Float, nullable=False)
+    # Link to the user's budget
+    budget_id = db.Column(db.Integer, db.ForeignKey("budgets.id"), nullable=False)
+
+    # Define a relationship with Budgets
+    budget = db.relationship("Budgets",
+                             backref="income_categories",
+                             lazy=True,
+                             cascade="all, delete-orphan")
+
+    def to_json(self):
+        return{
+            "id":self.id,
+            "title":self.title,
+            "amount":self.amount,
+            "budgetId":self.budget_id
+        }'''
