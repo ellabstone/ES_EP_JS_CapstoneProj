@@ -7,6 +7,8 @@ import About from "./components/About";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import FinancialQuestions from "./components/financialQuestions";
+import Dashboard from "./components/Dashboard";
+import FiftyThirtyTwenty from "./components/FiftyThirtyTwenty";
 
 function App() {
   return (
