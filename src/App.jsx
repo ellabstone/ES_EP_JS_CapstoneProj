@@ -6,6 +6,7 @@ import Photos from "./components/Photos";
 import About from "./components/About";
 import Login from "./components/Login";
 import Register from "./components/Register";
+import FinancialQuestions from "./components/financialQuestions";
 
 function App() {
   return (
@@ -30,6 +31,9 @@ function App() {
                   
                   {/* Register Page */}
                   <Route path="/register" element={<Register />} />
+
+                  {/* Financial Questions Page (after registration) */}
+                  <Route path="/financialQuestions" element={<FinancialQuestions />} />
               </Routes>
           </Router>
   );
