@@ -7,6 +7,8 @@ import About from "./components/About";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import FinancialQuestions from "./components/financialQuestions";
+import Dashboard from "./components/Dashboard";
+import FiftyThirtyTwenty from "./components/FiftyThirtyTwenty";
 
 function App() {
   return (
@@ -34,6 +36,12 @@ function App() {
 
                   {/* Financial Questions Page (after registration) */}
                   <Route path="/financialQuestions" element={<FinancialQuestions />} />
+
+                  {/* Dashboard Page */}
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  
+                  {/* 50/30/20 Page */}
+                  <Route path="/budget-503020" element={<FiftyThirtyTwenty />} />
               </Routes>
           </Router>
   );
