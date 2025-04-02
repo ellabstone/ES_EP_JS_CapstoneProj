@@ -1,7 +1,5 @@
-<<<<<<< HEAD
 /pycache/
 /venv/
-=======
 # Logs
 logs
 *.log
@@ -26,4 +24,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
->>>>>>> a13ea85 (frontend commit ella)
