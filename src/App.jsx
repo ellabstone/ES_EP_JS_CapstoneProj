@@ -34,6 +34,12 @@ function App() {
 
                   {/* Financial Questions Page (after registration) */}
                   <Route path="/financialQuestions" element={<FinancialQuestions />} />
+
+                  {/* Dashboard Page */}
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  
+                  {/* 50/30/20 Page */}
+                  <Route path="/budget-503020" element={<FiftyThirtyTwenty />} />
               </Routes>
           </Router>
   );
