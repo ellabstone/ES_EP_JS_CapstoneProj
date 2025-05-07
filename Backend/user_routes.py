@@ -11,6 +11,8 @@ user_bp = Blueprint("user", __name__)
 def get_users():
     users = Users.query.all()
     result = [user.to_json() for user in users]
+    if not result:
+        return jsonify({"status":"ok", "msg": "No users in system."}), 404
     # [ {...}, {...}, {...}] What we are storing in the result var
     return jsonify(result), 200
 
