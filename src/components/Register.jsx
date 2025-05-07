@@ -10,8 +10,8 @@ const Register = () => {
     const handleRegister = async () => {
         try {
             const data = await registerUser(username, password);
-            alert("Registration successful!");
-            window.location.href = "/financialQuestions"; 
+            alert("Registration successful! You can now log in.");
+            window.location.href = "/login";
         } catch (err) {
             setError(err);
         }
