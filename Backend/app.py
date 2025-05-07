@@ -9,7 +9,7 @@ from base_budget_routes import base_budget_bp
 from budget_item_routes import budget_item_bp
 from category_routes import category_bp
 from purchase_routes import purchase_bp
-from pyf_budget_routes import pyf_budget_bp
+#from pyf_budget_routes import pyf_budget_bp
 
 import os
 
@@ -28,7 +28,7 @@ app.register_blueprint(base_budget_bp)
 app.register_blueprint(budget_item_bp)
 app.register_blueprint(category_bp)
 app.register_blueprint(purchase_bp)
-app.register_blueprint(pyf_budget_bp)
+#app.register_blueprint(pyf_budget_bp)
 
 ## Configure database:
 # database is created locally under the backend folder
