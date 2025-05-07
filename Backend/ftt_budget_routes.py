@@ -162,7 +162,6 @@ def  ftt_purchase_calculation(budget_id):
         for title in unlinked_purchases:
             recommendations.append(f"'{title}' is not linked to any expense. Consider revising your budget to reflect this purchase.")
 
-
         ## 3. Overspending check
         if total_spent > income_total:
             recommendations.append(f"You have exceeded your income by ${total_spent - income_total:.2f}.")
