@@ -120,7 +120,8 @@ def update_user(user_id):
         if new_password:
             if len(new_password) < 8:
                 return jsonify({"status":"error", "msg":f'Password must be at least 8 characters in length.'}), 400
-            user.password = new_password
+            hashed_password = hashpw(new_password.encode("utf-8"), gensalt())
+            user.password = hashed_password.decode("utf-8")
 
         db.session.commit() # Can immediately commit b/c we have updated fields directly
         return jsonify({"msg":"User updated successfully", "updated_user":user.to_json()}), 200
