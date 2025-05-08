@@ -56,7 +56,7 @@ def pyf_allocation_calculation(budget_id):
 
         # Check for other $0 allocations
         for cat in budget.categories:
-            if cat.allocated_amount == 0:
+            if cat.allocated_amount == 0 and not cat.is_savings:
                 recommendations.append(
                     f"Category '{cat.title}' has $0 allocated. Consider reviewing its importance."
                 )

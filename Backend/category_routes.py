@@ -53,7 +53,7 @@ def add_category(budget_id):
                                                   Category.title.ilike(data["title"].strip())  # Case-insensitive and trimmed
                                                 ).first()
         if existing_category:
-            return jsonify({"status":"error", "msg": f"\"{data['title']}\" already exists in this budget."}), 400
+            return jsonify({"status":"error", "msg": f" '{data['title']}' already exists in this budget."}), 400
         
         # Title length check (required)
         title = data['title'].strip()
@@ -118,13 +118,15 @@ def update_category(budget_id, category_id):
         
         # Check if trying to update a protected category
         if is_protected_category(budget.method, category.title):
-            # Only allow updating description and allocated amount if protected
-            allowed_fields = ["description", "allocated_amount"]
-
+            # Prevent changing title or priority of protected categories
+            disallowed_fields = {"title", "priority"}
             for field in request.json.keys():
-                if field not in allowed_fields:
-                    return jsonify({"status":"error", "msg": f"Cannot change '{field}' for protected category '{category.title}'."}), 400
-
+                if field in disallowed_fields:
+                    return jsonify({
+                        "status":"error",
+                        "msg": f"Cannot change '{field}' for protected category '{category.title}' in {budget.method} budgeting."
+                    }), 400
+                
         data = request.json
 
         # Check for duplicate category title IN THIS BUDGET and validate length
@@ -139,6 +141,7 @@ def update_category(budget_id, category_id):
                 Category.budget_id == budget_id,
                 Category.title.ilike(title)
             ).first()
+            
             if existing_category and existing_category.id != category.id:
                 return jsonify({
                     "status": "error",
