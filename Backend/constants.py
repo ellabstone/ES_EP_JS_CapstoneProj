@@ -12,7 +12,7 @@ VALID_PERIODS = {
 }
 
 # Valid category types for expenses
-VALID_CATEGORIES_503020 = ["Necessities", "Wants", "Savings"]
+VALID_CATEGORIES_503020 = ["Needs", "Wants", "Savings"]
 
 # Valid budget methods
 VALID_METHODS = ["50-30-20", "zero-based", "pay-yourself-first"]
