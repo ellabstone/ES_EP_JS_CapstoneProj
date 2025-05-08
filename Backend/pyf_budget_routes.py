@@ -18,7 +18,8 @@ def create_base_savings_category(budget_id):
             is_savings=True
         )
         db.session.add(savings_category)
-        db.session.flush()  # Save category without committing yet
+        #db.session.flush()  # Save category without committing yet
+        db.session.commit()
         return savings_category
 
     except Exception as e:

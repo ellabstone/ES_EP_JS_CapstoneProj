@@ -54,8 +54,9 @@ def create_budget(user_id):
             if chosen_period not in VALID_PERIODS:
                 return jsonify({
                     "status": "error",
-                    "msg": f"Invalid period \"{data['period']}\". Valid options are: {', '.join(VALID_PERIODS.keys())}"
+                    "msg": f"Invalid period '{data['period']}'. Valid options are: {', '.join(VALID_PERIODS.keys())}"
                 }), 400
+
             budget_period = chosen_period
         else:
             frequencies = {income.frequency.lower() for income in user.initial_incomes}
@@ -118,13 +119,17 @@ def create_budget(user_id):
 
             for expense in new_budget.expenses:
                 expense.category_id = savings_category.id
+            db.session.commit()
+            db.session.refresh(new_budget)  # <- Ensures relationships are updated
 
         if new_budget.method == "50-30-20":
             # Create require categories: Needs, Savings, Wants
             create_base_categories_ftt(new_budget.id)
             # Leave expenses unlinked to begin with
-            
             db.session.commit()
+            db.session.refresh(new_budget)
+   
+        db.session.commit()
 
         return jsonify({"msg":f'Budget created successfully', "budget":new_budget.to_json()}), 201
     

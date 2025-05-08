@@ -96,7 +96,7 @@ def add_category(budget_id):
 
         return jsonify({
             "msg":"Category created successfully",
-            "new_income":new_category.to_json(),
+            "new_category":new_category.to_json(),
             "recalculation": recalculation
             }), status
     
