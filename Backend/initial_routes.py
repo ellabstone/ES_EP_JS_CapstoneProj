@@ -1,6 +1,7 @@
 # initial_routes.py by Eden Pardo
 from flask import Blueprint, request, jsonify
 from models import Users, InitialExpense, InitialIncome
+from constants import VALID_FREQUENCIES
 from extensions import db
 
 initial_bp = Blueprint('initial', __name__)
@@ -31,8 +32,8 @@ def add_initial_income(user_id):
         if float(data['amount']) < 0:
             return jsonify({"status":"error","msg": "Amount cannot be negative"}), 400
         
-        if data['frequency'] not in ["weekly", "biweekly", "monthly", "yearly"]:
-            return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+        if data['frequency'].lower() not in VALID_FREQUENCIES:
+            return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
 
         # Create new income
         new_income = InitialIncome(title=data['title'], amount=data['amount'], frequency=data['frequency'], user_id=user_id)
@@ -68,8 +69,8 @@ def update_initial_income(user_id, income_id):
                 return jsonify({"status":"error", "msg": "Amount cannot be negative"}), 400
             
         if 'frequency' in data:
-            if data['frequency'] not in ["weekly", "biweekly", "monthly", "yearly"]:
-                return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+            if data['frequency'].lower() not in VALID_FREQUENCIES:
+                return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
 
         # Update the income fields if provided and validated
         income.title = data.get("title", income.title)
@@ -147,8 +148,8 @@ def add_initial_expense(user_id):
         if len(expense_title) > 100:
             return jsonify({"status": "error", "msg": "Title too long"}), 400
 
-        if data['frequency'] not in ["weekly", "biweekly", "monthly", "yearly"]:
-            return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+        if data['frequency'].lower() not in VALID_FREQUENCIES:
+            return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
 
         # Create new expense category
         new_expense = InitialExpense(title=data['title'], amount=data['amount'], frequency=data['frequency'], user_id=user_id)
@@ -183,8 +184,8 @@ def update_initial_expense(user_id, expense_id):
                 return jsonify({"status": "error", "msg": "Title too long"}), 400
 
         if 'frequency' in data:
-            if data['frequency'] not in ["weekly", "biweekly", "monthly", "yearly"]:
-                return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+            if data['frequency'].lower() not in VALID_FREQUENCIES:
+                return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
 
         # Update the expense fields if provided and validated
         expense.title = data.get("title", expense.title)
