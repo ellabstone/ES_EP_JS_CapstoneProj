@@ -1,42 +1,68 @@
+//James
 import React, { useState } from "react";
-// import { loginUser } from "../api/auth";
-import { Button, Input, VStack, Text } from "@chakra-ui/react";
-//New Code Added to help transition to dashboard
+import {
+  Button,
+  Input,
+  VStack,
+  Text,
+  Heading,
+  Box
+} from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-    
-    //New Code Added to help transition to dashboard
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
-    
-    const handleLogin = async () => {
-        try {
-            //Temporarily commenting the authentication out for testing purposes
-            //const data = await loginUser(username, password);
-            //localStorage.setItem("token", data.token); //Store auth token
-            // const data = await loginUser(username, password);
-            // localStorage.setItem("token", data.token); //Store auth token
-            alert("Login successful!");
-            navigate("/dashboard/")
-            
-        }catch (err) {
-            setError(err);
-        }
-    };
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post("https://eden-backend-eabf.onrender.com/api/login", {
+        username,
+        password,
+      });
 
-    return (
-        <VStack spacing={4} p={5}>
-            <Text fontSize="xl">Login</Text>
-            <Input placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} />
-            <Input placeholder="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-            {error && <Text color="red.500">{error}</Text>}
-            <Button colorScheme="blue" onClick={handleLogin}>Login</Button>
-        </VStack>
-    );
+      const { user } = response.data;
+
+      // Save user ID to localStorage
+      localStorage.setItem("userId", user.id);
+
+      alert("Login successful! Redirecting...");
+      navigate("/dashboard");
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.msg || "Login failed. Please try again."
+      );
+    }
+  };
+
+  return (
+    <Box maxW="400px" mx="auto" mt={20} p={6} boxShadow="md" borderRadius="md" bg="white">
+      <VStack spacing={5}>
+        <Heading size="lg">Login</Heading>
+        <Input
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <Input
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        {error && <Text color="red.500">{error}</Text>}
+        <Button colorScheme="blue" width="100%" onClick={handleLogin}>
+          Login
+        </Button>
+      </VStack>
+    </Box>
+  );
 };
 
 export default Login;
+
+

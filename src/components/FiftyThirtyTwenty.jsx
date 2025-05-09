@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+//James
+import React, { useState, useEffect } from "react";
+import { Table } from "@chakra-ui/react";
 import {
   Box,
   Button,
@@ -9,6 +11,8 @@ import {
   Portal,
   Drawer,
   CloseButton,
+  Input,
+  HStack,
 } from "@chakra-ui/react";
 import { Card } from "@chakra-ui/react";
 import {
@@ -23,27 +27,56 @@ import {
   Cell,
 } from "recharts";
 import { Link as RouterLink } from "react-router-dom";
-
-const savingsData = [
-  { month: "Jan", savings: 1800 },
-  { month: "Feb", savings: 2100 },
-  { month: "Mar", savings: 550 },
-  { month: "Apr", savings: 2300 },
-  { month: "May", savings: 1750 },
-  { month: "Jun", savings: 2000 },
-];
-
-const pieData = [
-  { name: "Needs", value: 5000 },
-  { name: "Wants", value: 4000 },
-  { name: "Savings", value: 1000 },
-];
+import axios from "axios";
 
 const COLORS = ["#319795", "#D3D3D3", "#4A5568"];
-const savingsGoal = 2000;
 
 const FiftyThirtyTwenty = () => {
   const [open, setOpen] = useState(false);
+  const [pieData, setPieData] = useState([]);
+  const [barData, setBarData] = useState([]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) return;
+
+    axios
+      .get(`https://eden-backend-eabf.onrender.com/api/users/${userId}/budgets`)
+      .then((res) => {
+        const latest = res.data[res.data.length - 1];
+        const categoryTotals = { Needs: 0, Wants: 0, Savings: 0 };
+
+        latest.expenses.forEach((exp) => {
+          const cat = exp.category_name;
+          if (categoryTotals.hasOwnProperty(cat)) {
+            categoryTotals[cat] += exp.amount;
+          }
+        });
+
+        const pieDataFormatted = Object.entries(categoryTotals).map(
+          ([name, value]) => ({ name, value })
+        );
+        setPieData(pieDataFormatted);
+
+        const actuals = { Needs: 0, Wants: 0, Savings: 0 };
+        latest.expenses.forEach((expense) => {
+          const cat = expense.category_name;
+          if (actuals.hasOwnProperty(cat)) {
+            actuals[cat] += expense.amount;
+          }
+        });
+
+        const barDataFormatted = latest.all_categories.map((cat) => ({
+          category: cat.title,
+          budgeted: cat.allocated_amount,
+          actual: actuals[cat.title] || 0,
+        }));
+        setBarData(barDataFormatted);
+      })
+      .catch((err) => {
+        console.error("Failed to fetch latest budget:", err);
+      });
+  }, []);
 
   return (
     <Flex minH="100vh">
@@ -79,12 +112,36 @@ const FiftyThirtyTwenty = () => {
           </ResponsiveContainer>
         </Box>
 
-        <Text textAlign="center" fontStyle="italic">
-          You are currently expending $1000 over your "wants" limit. <br />
-          Next month your savings budget is $3000 to get back on track.
-        </Text>
+        {(() => {
+          const savingsData = barData.find((item) => item.category === "Savings");
 
-        <Box mt={10}>
+          if (!savingsData) return null;
+
+          const { actual, budgeted } = savingsData;
+          const difference = actual - budgeted;
+          const isAbove = difference >= 0;
+
+          return (
+            <Text textAlign="center" fontStyle="italic" mt={2}>
+              You are currently spending ${Math.abs(difference)} {isAbove ? "above" : "below"} your current savings goal.{" "}
+              {isAbove ? "Keep up the good work!" : "Prioritize your savings to get back on track!"}
+            </Text>
+          );
+        })()}
+
+
+        <Card.Root w="100%" maxW="470px" mb={6}>
+          <Card.Header>
+            <Heading size="sm">Not sure what this means?</Heading>
+          </Card.Header>
+          <Card.Body>
+            <Button onClick={() => setOpen(true)} colorScheme="blackAlpha" w="100%">
+              Learn About the 50/30/20 Rule
+            </Button>
+          </Card.Body>
+        </Card.Root>
+
+        <Box mt={2}>
           <Button as={RouterLink} to="/dashboard">
             Back to Dashboard
           </Button>
@@ -96,39 +153,65 @@ const FiftyThirtyTwenty = () => {
         <VStack spacing={6}>
           <Card.Root w="100%">
             <Card.Header>
-              <Heading size="sm">Track Your Savings</Heading>
+              <Heading size="sm">Compare Budgeted vs Actual Spending</Heading>
             </Card.Header>
             <Card.Body>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={savingsData}>
-                  <XAxis dataKey="month" />
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={barData}>
+                  <XAxis dataKey="category" />
                   <YAxis />
                   <Tooltip />
+                  <Bar dataKey="budgeted" fill="#A0AEC0" name="Budgeted" />
                   <Bar
-                    dataKey="savings"
-                    shape={({ x, y, width, height, payload }) => (
-                      <rect
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={height}
-                        fill={payload.savings >= savingsGoal ? "#38A169" : "#E53E3E"}
-                      />
-                    )}
+                    dataKey="actual"
+                    name="Actual"
+                    shape={({ x, y, width, height, payload }) => {
+                      let color = "#E53E3E";
+                      if (
+                        payload.category === "Needs" ||
+                        payload.category === "Wants"
+                      ) {
+                        if (payload.actual < payload.budgeted) {
+                          color = "#38A169";
+                        }
+                      } else if (payload.category === "Savings") {
+                        if (payload.actual >= payload.budgeted) {
+                          color = "#38A169";
+                        }
+                      }
+                      return (
+                        <rect x={x} y={y} width={width} height={height} fill={color} />
+                      );
+                    }}
                   />
                 </BarChart>
               </ResponsiveContainer>
+              <Text mt={2} fontSize="sm" fontStyle="italic" textAlign="center">
+                Budgeted amounts are shown in grey. Actual spending is shown in color.
+              </Text>
             </Card.Body>
           </Card.Root>
-
           <Card.Root w="100%">
             <Card.Header>
-              <Heading size="sm">Not sure what this means?</Heading>
+              <Heading size="sm">Add One-Time Purchase</Heading>
             </Card.Header>
             <Card.Body>
-              <Button onClick={() => setOpen(true)} colorScheme="blackAlpha" w="100%">
-                Learn About the 50/30/20 Rule
-              </Button>
+              <VStack spacing={4} align="stretch">
+                <HStack>
+                  <Input placeholder="Title" />
+                  <Input placeholder="Amount" type="number" />
+                  <select style={{ padding: "8px", borderRadius: "4px" }}>
+                    <option value="">Category</option>
+                    <option value="Needs">Needs</option>
+                    <option value="Wants">Wants</option>
+                    <option value="Savings">Savings</option>
+                  </select>
+                  <Button colorScheme="blue">Add Purchase</Button>
+                </HStack>
+                <Text fontSize="sm" color="gray.500">
+                  These purchases are added on top of your recurring expenses.
+                </Text>
+              </VStack>
             </Card.Body>
           </Card.Root>
         </VStack>
@@ -175,3 +258,5 @@ const FiftyThirtyTwenty = () => {
 };
 
 export default FiftyThirtyTwenty;
+
+

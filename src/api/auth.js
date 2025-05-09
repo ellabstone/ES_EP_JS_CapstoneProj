@@ -1,36 +1,32 @@
+//ella
 import axios from "axios";
 
-//where it is going to eventually connect to backend w real data
 
-const API_BASE_URL = "http://localhost:5173/api"; //should be backend url
-
-export const loginUser = async (username, password) => {
+/*export const loginUser = async (username, password) => {
     try {
-        const response = await axios.post(`${API_BASE_URL}/login`, { username, password });
+        const response = await axios.post(`${APIurl}/login`, { username, password });
         return response.data; //expects a token or user data
 
     } catch (error) {
         throw error.response?.data || "Login failed";
     }
 }
+*/
 
-//registration code that is not correctly connected to the backend yet 
-
-/*export const registerUser = async (username, password) => { //not correctly connected to backend
-    try {
-        const response = await axios.post(`${API_BASE_URL}/register`, { username, password });
-        return response.data;
-    } catch (error) {
-        throw error.response?.data || "Registration failed";
-    }
-}*/
-
-//mock registration code
-export const registerUser = async (username, password) => {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            console.log("Mock registration successful:", { username, password });
-            resolve({ message: "Registration successful (mock)" });
-        }, 1000); //Simulate a short delay
+export const registerUser = async (name, username, password) => {
+    const response = await fetch("https://eden-backend-eabf.onrender.com/api/users", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, username, password })
     });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.msg || "Registration failed");
+    }
+
+    return data;
 };
