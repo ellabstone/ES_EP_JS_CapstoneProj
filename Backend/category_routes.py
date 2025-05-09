@@ -48,13 +48,25 @@ def add_category(budget_id):
         if missing_fields:
             return jsonify({"status":"error", "msg":f"Missing required field: {', '.join(missing_fields)}"}), 400
             
-        # Check for duplicate category title IN THIS BUDGET
-        existing_category = Category.query.filter(Category.budget_id == budget_id,
-                                                  Category.title.ilike(data["title"].strip())  # Case-insensitive and trimmed
-                                                ).first()
+        # Check for duplicate category title in the same budget
+        existing_category = Category.query.filter(
+                                Category.budget_id == budget_id,
+                                Category.title.ilike(data["title"].strip())  # Case-insensitive and trimmed
+                                ).first()
         if existing_category:
             return jsonify({"status":"error", "msg": f" '{data['title']}' already exists in this budget."}), 400
         
+        # Check for duplicate priority in the same budget
+        priority_exists = Category.query.filter_by(
+                                budget_id=budget_id,
+                                priority=data['priority']
+                                ).first()
+        if priority_exists:
+            return jsonify({
+                "status": "error",
+                "msg": f"Priority {data['priority']} is already used by another category in this budget. Please choose a unique priority."
+            }), 400
+
         # Title length check (required)
         title = data['title'].strip()
         if len(title) == 0:
@@ -129,7 +141,7 @@ def update_category(budget_id, category_id):
                 
         data = request.json
 
-        # Check for duplicate category title IN THIS BUDGET and validate length
+        # Check for duplicate category title in the same budget and validate length
         if 'title' in data:
             title = data['title'].strip()
             if len(title) == 0:
@@ -138,24 +150,26 @@ def update_category(budget_id, category_id):
                 return jsonify({"status": "error", "msg": "Title too long (max 100 chars)"}), 400
 
             existing_category = Category.query.filter(
-                Category.budget_id == budget_id,
-                Category.title.ilike(title)
-            ).first()
-            
+                                    Category.budget_id == budget_id,
+                                    Category.title.ilike(title)
+                                    ).first()
             if existing_category and existing_category.id != category.id:
                 return jsonify({
                     "status": "error",
                     "msg": f"'{data['title']}' already exists in this budget."
                 }), 400
-
             category.title = title
 
-        # Description length check (if provided)
-        if 'description' in data:
-            description = data['description'].strip()
-            if len(description) > 100:
-                return jsonify({"status": "error", "msg": "Description too long (max 100 chars)"}), 400
-            category.description = description if description else None
+        # Check for duplicate priority in the same budget
+        priority_exists = Category.query.filter_by(
+                                budget_id=budget_id,
+                                priority=data['priority']
+                                ).first()
+        if priority_exists:
+            return jsonify({
+                "status": "error",
+                "msg": f"Priority {data['priority']} is already used by another category in this budget. Please choose a unique priority."
+            }), 400
 
         # Check that priority is a positive int and it is not a reserved priority
         if 'priority' in data:
@@ -175,6 +189,14 @@ def update_category(budget_id, category_id):
             if new_amount < 0:
                 return jsonify({"status":"error", "msg": "Allocated amount cannot be negative"}), 400
             category.allocated_amount = new_amount
+        
+        # Description length check (if provided)
+        if 'description' in data:
+            description = data['description'].strip()
+            if len(description) > 100:
+                return jsonify({"status": "error", "msg": "Description too long (max 100 chars)"}), 400
+            category.description = description if description else None
+
 
         db.session.commit()
 

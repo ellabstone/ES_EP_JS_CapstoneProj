@@ -37,7 +37,7 @@ def add_budget_income(budget_id):
 
         income_frequency = data["frequency"].lower()
         if income_frequency not in VALID_FREQUENCIES:
-            return jsonify({"status": "error", "msg": "Invalid frequency"}), 400
+            return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
 
         # Normalize if needed
         budget_period = budget.period.lower()
@@ -91,7 +91,7 @@ def update_budget_income(budget_id, budget_income_id):
         if "frequency" in data:
             freq = data["frequency"].lower()
             if freq not in VALID_FREQUENCIES:
-                return jsonify({"status": "error", "msg": "Invalid frequency"}), 400
+                return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
             updated_frequency = freq
 
         if "title" in data:
@@ -210,7 +210,7 @@ def add_budget_expense(budget_id):
             return jsonify({"status": "error", "msg": "Title too long"}), 400
 
         if data['frequency'] not in VALID_FREQUENCIES:
-            return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+            return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
         
         # Normalize amount if frequency does not match budget's period
         expense_amount = float(data['amount'])
@@ -229,7 +229,6 @@ def add_budget_expense(budget_id):
             budget_id=budget_id,
             title=data['category_type']
         ).first()
-
         if not category:
             return jsonify({"error": f"Category '{data['category_type']}' does not exist in this budget. Please create it first."}), 400
 
@@ -280,7 +279,7 @@ def update_budget_expense(budget_id, budget_expense_id):
         if 'frequency' in data:
             freq = data['frequency'].lower()
             if freq not in VALID_FREQUENCIES:
-                return jsonify({"status":"error", "msg": "Frquency must be 'weekly', 'biweekly', 'monthly', or 'yearly'"}), 400
+                return jsonify({"status":"error", "msg": f'Frquency must be {", ".join(VALID_FREQUENCIES)}'}), 400
             updated_frequency = freq
 
         budget = Budget.query.get(budget_id)

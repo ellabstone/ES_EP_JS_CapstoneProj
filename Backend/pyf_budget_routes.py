@@ -63,10 +63,11 @@ def pyf_allocation_calculation(budget_id):
 
         # Build category info output
         categories_info = [{
-            "title": cat.title,
-            "allocated_amount": cat.allocated_amount,
-            "priority": cat.priority
-        } for cat in budget.categories]
+            "title": c.title,
+            "description": c.description,
+            "allocated_amount": c.allocated_amount,
+            "priority": c.priority
+        } for c in budget.categories]
 
         return {
             "status": "analyzed",

@@ -92,8 +92,8 @@ def ftt_allocation_calculation(budget_id):
             cat = category_lookup.get(name)
             if cat:
                 actual = cat.allocated_amount
-                lower = total_income * (expected_ratio * 0.95)
-                upper = total_income * (expected_ratio * 1.05)
+                lower = total_income * (expected_ratio - 0.95)
+                upper = total_income * (expected_ratio + 1.05)
                 if not (lower <= actual <= upper):
                     recommendations.append(
                         f"'{cat.title}' allocation is outside the recommended 50/30/20 range. You assigned ${actual:.2f}, but target is ~{int(expected_ratio * 100)}% of income."
@@ -104,6 +104,7 @@ def ftt_allocation_calculation(budget_id):
         # Build category info
         categories_info = [{
             "title": c.title,
+            "description": c.description,
             "allocated_amount": c.allocated_amount,
             "priority": c.priority
         } for c in budget.categories]
